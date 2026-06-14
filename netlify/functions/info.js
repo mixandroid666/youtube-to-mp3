@@ -1,6 +1,6 @@
 const { execFile } = require('child_process');
 const { promisify } = require('util');
-const { CORS, findYtDlp } = require('./utils');
+const { CORS, findYtDlp, getCookieFile, deleteFile } = require('./utils');
 
 const execFileAsync = promisify(execFile);
 
@@ -21,14 +21,25 @@ exports.handler = async (event) => {
     return { statusCode: 400, headers: responseHeaders, body: JSON.stringify({ error: 'Missing url parameter' }) };
   }
 
+  let cookieFile = null;
+
   try {
     const ytDlp = await findYtDlp();
-    const { stdout } = await runYtDlp(ytDlp, [
+    cookieFile = getCookieFile();
+
+    const args = [
       '--dump-json',
       '--no-playlist',
       '--no-warnings',
-      url,
-    ]);
+    ];
+
+    if (cookieFile) {
+      args.push('--cookies', cookieFile);
+    }
+
+    args.push(url);
+
+    const { stdout } = await runYtDlp(ytDlp, args);
 
     const meta = JSON.parse(stdout);
     const thumbnail =
@@ -51,5 +62,7 @@ exports.handler = async (event) => {
       headers: responseHeaders,
       body: JSON.stringify({ error: err.message }),
     };
+  } finally {
+    deleteFile(cookieFile);
   }
 };

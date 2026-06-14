@@ -86,8 +86,47 @@ async function findYtDlp() {
   return tempPath;
 }
 
+const { randomBytes } = require('crypto');
+
+function getCookieFile() {
+  if (!process.env.YOUTUBE_COOKIES) {
+    return null;
+  }
+  
+  try {
+    const tempCookiesPath = path.join(os.tmpdir(), `cookies-${randomBytes(4).toString('hex')}.txt`);
+    let cookiesContent = process.env.YOUTUBE_COOKIES.trim();
+    
+    // Check if it is base64 encoded (a common way to format multiline cookies in env vars)
+    if (!cookiesContent.includes('# Netscape HTTP Cookie File')) {
+      try {
+        const decoded = Buffer.from(cookiesContent, 'base64').toString('utf8');
+        if (decoded.includes('# Netscape') || decoded.includes('youtube.com')) {
+          cookiesContent = decoded;
+        }
+      } catch {}
+    }
+    
+    fs.writeFileSync(tempCookiesPath, cookiesContent, 'utf8');
+    return tempCookiesPath;
+  } catch (err) {
+    console.error('Failed to create cookie file:', err);
+    return null;
+  }
+}
+
+function deleteFile(filePath) {
+  if (filePath) {
+    try {
+      fs.unlinkSync(filePath);
+    } catch {}
+  }
+}
+
 module.exports = {
   CORS,
   findFfmpeg,
   findYtDlp,
+  getCookieFile,
+  deleteFile,
 };

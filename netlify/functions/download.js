@@ -3,7 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { randomBytes } = require('crypto');
-const { CORS, findYtDlp, findFfmpeg } = require('./utils');
+const { CORS, findYtDlp, findFfmpeg, getCookieFile, deleteFile } = require('./utils');
 
 function run(bin, args, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -32,21 +32,29 @@ exports.handler = async (event) => {
 
   const tmpBase = path.join(os.tmpdir(), `yt-${randomBytes(8).toString('hex')}`);
   const tmpMp3 = `${tmpBase}.mp3`;
+  let cookieFile = null;
 
   try {
     const ytDlp = await findYtDlp();
     const ffmpeg = findFfmpeg();
+    cookieFile = getCookieFile();
 
-    await run(ytDlp, [
+    const args = [
       '-x',
       '--audio-format', 'mp3',
       '--audio-quality', '192K',
       '--ffmpeg-location', path.dirname(ffmpeg),
       '--no-playlist',
       '--no-warnings',
-      '-o', `${tmpBase}.%(ext)s`,
-      url,
-    ]);
+    ];
+
+    if (cookieFile) {
+      args.push('--cookies', cookieFile);
+    }
+
+    args.push('-o', `${tmpBase}.%(ext)s`, url);
+
+    await run(ytDlp, args);
 
     const buffer = fs.readFileSync(tmpMp3);
     return {
@@ -68,5 +76,6 @@ exports.handler = async (event) => {
     };
   } finally {
     try { fs.unlinkSync(tmpMp3); } catch {}
+    deleteFile(cookieFile);
   }
 };
