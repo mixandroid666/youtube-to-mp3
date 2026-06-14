@@ -44,9 +44,11 @@ function findFfmpeg() {
 }
 
 async function findYtDlp() {
-  const isWin = process.platform === 'win32';
-  const ext = isWin ? '.exe' : '';
-  const binaryName = `yt-dlp${ext}`;
+  const platform = process.platform;
+  let binaryName = 'yt-dlp';
+  if (platform === 'win32') binaryName = 'yt-dlp.exe';
+  else if (platform === 'linux') binaryName = 'yt-dlp_linux';
+  else if (platform === 'darwin') binaryName = 'yt-dlp_macos';
 
   // 1. Try local function folder and system temp folder
   const candidates = [
@@ -62,6 +64,7 @@ async function findYtDlp() {
 
   // 2. Try system PATH
   try {
+    const isWin = platform === 'win32';
     const whichCmd = isWin ? 'where.exe' : 'which';
     require('child_process').execSync(`${whichCmd} yt-dlp`, { stdio: 'ignore' });
     return 'yt-dlp';
@@ -69,13 +72,12 @@ async function findYtDlp() {
 
   // 3. Download to temp directory
   const tempPath = path.join(os.tmpdir(), binaryName);
-  const downloadUrl = isWin
-    ? 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe'
-    : 'https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp';
+  const downloadUrl = `https://github.com/yt-dlp/yt-dlp/releases/latest/download/${binaryName}`;
 
   console.log(`yt-dlp not found. Downloading to ${tempPath}...`);
   await downloadFile(downloadUrl, tempPath);
   
+  const isWin = platform === 'win32';
   if (!isWin) {
     fs.chmodSync(tempPath, 0o755);
   }
