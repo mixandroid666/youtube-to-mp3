@@ -1,0 +1,21 @@
+{
+	"geolocation": {
+		"data": {
+			"city": "Bangkok",
+			"country": {
+				"code": "TH",
+				"name": "Thailand"
+			},
+			"subdivision": {
+				"code": "10",
+				"name": "Bangkok"
+			},
+			"timezone": "Asia/Bangkok",
+			"latitude": 13.7618,
+			"longitude": 100.5324,
+			"postalCode": "10400"
+		},
+		"timestamp": 1781415706466
+	},
+	"dbConnectionString": "postgres://localhost:54809/postgres"
+}

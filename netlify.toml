@@ -1,0 +1,21 @@
+[build]
+  publish = "public"
+  functions = "netlify/functions"
+
+[build.environment]
+  NODE_VERSION = "18"
+
+[dev]
+  command = "python3 -m http.server 3999 --directory public"
+  targetPort = 3999
+  port = 8888
+  publish = "public"
+  functions = "netlify/functions"
+
+[functions]
+  node_bundler = "nft"
+
+[[redirects]]
+  from = "/api/*"
+  to = "/.netlify/functions/:splat"
+  status = 200

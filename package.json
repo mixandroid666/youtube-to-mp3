@@ -1,0 +1,13 @@
+{
+  "name": "youtube-to-mp3",
+  "version": "1.0.0",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "@distube/ytdl-core": "^4.14.4"
+  },
+  "devDependencies": {
+    "netlify-cli": "^26.1.0"
+  }
+}
