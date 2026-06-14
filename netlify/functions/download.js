@@ -3,25 +3,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { randomBytes } = require('crypto');
-
-const CORS = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Methods': 'GET, OPTIONS',
-};
-
-function findBin(name) {
-  const candidates = [
-    path.join(__dirname, name),
-    `/opt/homebrew/bin/${name}`,
-    `/usr/local/bin/${name}`,
-    `/usr/bin/${name}`,
-    name,
-  ];
-  for (const c of candidates) {
-    try { fs.accessSync(c, fs.constants.X_OK); return c; } catch {}
-  }
-  return name;
-}
+const { CORS, findYtDlp, findFfmpeg } = require('./utils');
 
 function run(bin, args, opts = {}) {
   return new Promise((resolve, reject) => {
@@ -52,8 +34,8 @@ exports.handler = async (event) => {
   const tmpMp3 = `${tmpBase}.mp3`;
 
   try {
-    const ytDlp = findBin('yt-dlp');
-    const ffmpeg = findBin('ffmpeg');
+    const ytDlp = await findYtDlp();
+    const ffmpeg = findFfmpeg();
 
     await run(ytDlp, [
       '-x',
